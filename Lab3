@@ -1,0 +1,68 @@
+import random
+
+guess_numbers = []
+def code():
+    return [random.randint(1,6) for _ in range(0,4)]
+
+code = code()
+
+def guess(turn):
+    while True:
+        print("Guess a sequence of values from 1-6")
+        guess = input(f"Guess {turn} of 12: ")
+        try:
+            global guess_numbers
+            guess_numbers = [int(d) for d in guess]
+        except ValueError:
+            print("Enter Numbers Only")
+        except UnboundLocalError:
+            print("Enter Numbers Only")
+        if len(guess_numbers) == 4 and max(guess_numbers) <= 6:
+            return list(guess_numbers)
+        else:
+            print('Enter a 4 digit number')
+
+def feedback(guess):
+
+    if code == guess_numbers:
+        print('●●●●')
+        print(f'You Win!')
+        print(1/0)
+        
+    else:
+        dots = []
+        dotstring = ""
+
+        for i in range(len(code)):
+            if guess_numbers[i] == code[i]:
+                dotstring += "●"
+        code_copy = code[:]
+        guess_copy = guess_numbers[:]
+
+        for i in range(len(code)-1, -1, -1):  
+            if guess_copy[i] == code_copy[i]:
+                del code_copy[i]
+                del guess_copy[i]
+
+        for g in guess_copy:
+            if g in code_copy:
+                dots.append("○")
+                code_copy.remove(g)
+        print(dotstring + "".join(dots))
+
+
+    
+
+print("Welcome to Mastermind!")
+print("Guess a sequence 4 values from 1-6")
+print("○ = one element is in the code but in the wrong place")
+print("● = one element is in the code and in the correct place")
+print(code)
+for i in range(1,13):
+    guess(i)
+    feedback(guess)
+
+
+print('You lose!')
+print(f'The code was: {code}')
+
