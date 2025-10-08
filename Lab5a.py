@@ -16,7 +16,7 @@ try:
 	while True:
 		t = time.time() - start
 		B = (math.sin(2*math.pi*f*t))**2
-		duty = brightness * 100
+		duty = B * 100
 		pwm.ChangeDutyCycle(duty)
 
 except KeyboardInterrupt:
