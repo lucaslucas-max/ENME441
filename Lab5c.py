@@ -77,7 +77,7 @@ try:
 		dutyten = Bten * 100
 
 		pwm.ChangeDutyCycle(duty)
-  	pwmtwo.ChangeDutyCycle(dutytwo)
+		pwmtwo.ChangeDutyCycle(dutytwo)
 		pwmthree.ChangeDutyCycle(dutythree)
 		pwmfour.ChangeDutyCycle(dutyfour)
 		pwmfive.ChangeDutyCycle(dutyfive)
