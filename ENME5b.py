@@ -21,11 +21,11 @@ try:
 	while True:
 		t = time.time() - start
 		B = (math.sin(2*math.pi*f*t))**2
-    Btwo = (math.sin(2*math.pi*f*t - theta))**2
+    	Btwo = (math.sin(2*math.pi*f*t - theta))**2
 		duty = B * 100
-    dutytwo = Btwo * 100
+    	dutytwo = Btwo * 100
 		pwm.ChangeDutyCycle(duty)
-    pwm.ChangeDutyCycle(dutytwo)
+    	pwm.ChangeDutyCycle(dutytwo)
 
 except KeyboardInterrupt:
 	pass
