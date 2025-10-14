@@ -17,8 +17,8 @@ class Bug:
     self._running = False
 
   def display(self):
-  pattern = 1 << self.x
-  self.__shifter.shiftByte(pattern)
+    pattern = 1 << self.x
+    self.__shifter.shiftByte(pattern)
 
   def start(self):
     self._running = True
