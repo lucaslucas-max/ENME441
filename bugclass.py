@@ -24,14 +24,14 @@ class Bug:
     self._running = True
     try:
       while self._running:
-      self.__update_display()
-      time.sleep(self.timestep)
-      move = random.choice([-1, 1])
-      self.x += move
-      if self.x < 0:
-        self.x = 0
-      elif self.x > 7:
-        self.x = 7
+        self.__update_display()
+        time.sleep(self.timestep)
+        move = random.choice([-1, 1])
+        self.x += move
+        if self.x < 0:
+          self.x = 0
+        elif self.x > 7:
+          self.x = 7
 
     except KeyboardInterrupt:
       self.stop()
