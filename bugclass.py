@@ -23,7 +23,7 @@ class Bug:
   def start(self):
     self._running = True
     try:
-      while self._running
+      while self._running:
       self.__update_display()
       time.sleep(self.timestep)
       move = random.choice([-1, 1])
