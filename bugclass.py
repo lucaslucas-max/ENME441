@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 from shifter import Shifter
 
 class Bug:
-  def __int__(self, timestep=0.1, x=3, isWrapOn= False)
+  def __int__(self, timestep=0.1, x=3, isWrapOn= False):
     self.timestep = timestep
     self.x = x
     self.isWrapOn = False
