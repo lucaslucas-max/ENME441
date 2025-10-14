@@ -36,7 +36,7 @@ try:
             # Run in background — use non-blocking loop
             bug._running = True
             while bug._running and GPIO.input(S1_PIN):  # keep bug alive while s1 is ON
-                bug._Bug__update_display()  # call the Bug’s internal update
+                bug._Bug_display()  # call the Bug’s internal update
                 time.sleep(bug.timestep)
                 bug.x += 1 if GPIO.input(S3_PIN) else -1  # small motion example
                 if bug.isWrapOn:
