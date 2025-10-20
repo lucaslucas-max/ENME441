@@ -1,56 +1,40 @@
-# bug.py
-import time
 import RPi.GPIO as GPIO
-from bugclass import Bug
+import time
+from bugclass import Shifter, Bug
 
-# GPIO pins for switches
-S1_PIN = 17  # Start/Stop
-S2_PIN = 27  # Toggle wrap mode
-S3_PIN = 22  # Speed boost
-
+# Setup GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(S1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(S2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(S3_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+dataPin, latchPin, clockPin = 23, 24, 25
+s1, s2, s3 = 17, 27, 22  # Input switches
 
-bug = Bug()
-default_timestep = bug.timestep
-boosted_timestep = default_timestep / 3
-prev_s2 = GPIO.input(S2_PIN)
+for pin in [s1, s2, s3]:
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+# Create shifter and bug
+s = Shifter(dataPin, latchPin, clockPin)
+bug = Bug(s)
+
+last_s2 = GPIO.input(s2)
 
 try:
-    print("Bug control running. Press Ctrl+C to quit.")
-    print("S1: on/off | S2: toggle wrap | S3: speed boost")
-
     while True:
-        s1 = GPIO.input(S1_PIN)
-        s2 = GPIO.input(S2_PIN)
-        s3 = GPIO.input(S3_PIN)
+        # a. Turn bug on/off with s1
+        bug.running = GPIO.input(s1) == GPIO.HIGH
 
-        # --- S1: Start or stop bug ---
-        if s1 and not bug._running:
-            bug.start()
-            print("Bug started.")
-        elif not s1 and bug._running:
-            bug.stop()
-            print("Bug stopped.")
-
-        # --- S2: Toggle wrap mode on rising edge ---
-        if s2 != prev_s2 and s2 == 1:
+        # b. Flip wrap state when s2 changes
+        s2_state = GPIO.input(s2)
+        if s2_state != last_s2:
             bug.isWrapOn = not bug.isWrapOn
-            print(f"Wrap mode is now {'ON' if bug.isWrapOn else 'OFF'}")
-        prev_s2 = s2
+            last_s2 = s2_state
 
-        # --- S3: Speed boost while held ---
-        if s3:
-            bug.timestep = boosted_timestep
+        # c. Increase speed when s3 is on (reduce timestep)
+        if GPIO.input(s3) == GPIO.HIGH:
+            bug.timestep = 0.1 / 3
         else:
-            bug.timestep = default_timestep
+            bug.timestep = 0.1
 
-        time.sleep(0.05)
+        # move bug
+        bug.move_once()
 
 except KeyboardInterrupt:
-    print("Exiting program...")
-finally:
-    bug.stop()
     GPIO.cleanup()
