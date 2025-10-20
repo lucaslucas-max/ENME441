@@ -8,20 +8,14 @@ S1_PIN = 17  # Start/Stop
 S2_PIN = 27  # Toggle wrap mode
 S3_PIN = 22  # Speed boost
 
-# Set up input pins with pull-down resistors
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(S1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S3_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-# Create Bug object (default timestep=0.1, x=3, wrap=False)
 bug = Bug()
-
-# Store default and boosted speeds
 default_timestep = bug.timestep
 boosted_timestep = default_timestep / 3
-
-# Track previous state of S2 for edge detection
 prev_s2 = GPIO.input(S2_PIN)
 
 try:
@@ -33,7 +27,7 @@ try:
         s2 = GPIO.input(S2_PIN)
         s3 = GPIO.input(S3_PIN)
 
-        # --- S1: Turn bug on/off ---
+        # --- S1: Start or stop bug ---
         if s1 and not bug._running:
             bug.start()
             print("Bug started.")
@@ -41,7 +35,7 @@ try:
             bug.stop()
             print("Bug stopped.")
 
-        # --- S2: Toggle wrap-around on rising edge ---
+        # --- S2: Toggle wrap mode on rising edge ---
         if s2 != prev_s2 and s2 == 1:
             bug.isWrapOn = not bug.isWrapOn
             print(f"Wrap mode is now {'ON' if bug.isWrapOn else 'OFF'}")
@@ -53,9 +47,10 @@ try:
         else:
             bug.timestep = default_timestep
 
-        time.sleep(0.05)  # Small polling delay
+        time.sleep(0.05)
 
 except KeyboardInterrupt:
     print("Exiting program...")
+finally:
     bug.stop()
     GPIO.cleanup()
