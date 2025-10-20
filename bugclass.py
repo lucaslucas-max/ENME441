@@ -16,11 +16,9 @@ class Bug:
         self.x = x
         self.isWrapOn = isWrapOn
 
-        # Private Shifter object for LED control
         DATA, LATCH, CLOCK = 23, 24, 25
         self.__shifter = Shifter(DATA, CLOCK, LATCH)
 
-        # Control flags
         self._running = False
         self._thread = None
 
@@ -36,7 +34,6 @@ class Bug:
                 self.__update_display()
                 time.sleep(self.timestep)
 
-                # Move LED left or right randomly
                 move = random.choice([-1, 1])
                 self.x += move
 
@@ -50,7 +47,8 @@ class Bug:
         except Exception as e:
             print("Error in bug thread:", e)
         finally:
-            self.__shifter.shiftByte(0b00000000)
+            # Turn off LEDs when thread exits
+            self.__shifter.shiftByte(0)
 
     def start(self):
         """Start movement in a new thread."""
@@ -64,4 +62,5 @@ class Bug:
         self._running = False
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=0.5)
-        self.__shifter.shiftByte(0b00000000)
+        self.__shifter.shiftByte(0)
+        # DO NOT call GPIO.cleanup() here
