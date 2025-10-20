@@ -1,66 +1,61 @@
-# bugclass.py
-import time
 import random
 import RPi.GPIO as GPIO
-from shifter import Shifter
-import threading
+import time
+GPIO.setmode(GPIO.BCM)
+
+class Shifter:
+    def __init__(self, serialPin, latchPin, clockPin):
+        self.serialPin = serialPin
+        self.latchPin = latchPin
+        self.clockPin = clockPin
+
+        # Set up GPIO pins
+        GPIO.setup(self.serialPin, GPIO.OUT)
+        GPIO.setup(self.latchPin, GPIO.OUT, initial=0) # start latch & clock low
+        GPIO.setup(self.clockPin, GPIO.OUT, initial=0)
+        
+    def __ping(self, p): # ping the clock or latch pin
+        GPIO.output(p,1)
+        time.sleep(0)
+        GPIO.output(p,0)
+
+    def shiftByte(self, b): # send a byte of data to the output
+        for i in range(8):
+            GPIO.output(self.serialPin, b & (1<<i))
+            self.__ping(self.clockPin) # ping the clock pin to shift register data
+        self.__ping(self.latchPin) # ping the latch pin to send register to output
 
 class Bug:
-    def __init__(self, timestep=0.1, x=3, isWrapOn=False):
-        """
-        timestep: time step size in seconds
-        x: initial LED position (0–7)
-        isWrapOn: if True, LED wraps around edges
-        """
-        self.timestep = timestep
-        self.x = x
+    def __init__(self, __shifter, timestep = 0.1, x = 3, isWrapOn = False):
+        self.timestep = timestep # time step in seconds
+        self.x = x # current x position (0-7)
         self.isWrapOn = isWrapOn
+        self.__shifter = __shifter
+        self.running = False
+    
+    def move_once(self):
+        """Move the bug one step if it's running."""
+        if not self.running:
+            return
 
-        DATA, LATCH, CLOCK = 23, 24, 25
-        self.__shifter = Shifter(DATA, CLOCK, LATCH)
-
-        self._running = False
-        self._thread = None
-
-    def __update_display(self):
-        """Private: update the LEDs to show the current position."""
+        # Turn on the current LED
         pattern = 1 << self.x
         self.__shifter.shiftByte(pattern)
+        time.sleep(self.timestep)
 
-    def __run(self):
-        """Private thread loop for movement."""
-        try:
-            while self._running:
-                self.__update_display()
-                time.sleep(self.timestep)
+        # Random step left (-1) or right (+1)
+        step = random.choice([-1, 1])
+        self.x += step
 
-                move = random.choice([-1, 1])
-                self.x += move
-
-                if self.isWrapOn:
-                    self.x %= 8
-                else:
-                    if self.x < 0:
-                        self.x = 0
-                    elif self.x > 7:
-                        self.x = 7
-        except Exception as e:
-            print("Error in bug thread:", e)
-        finally:
-            # Turn off LEDs when thread exits
-            self.__shifter.shiftByte(0)
-
-    def start(self):
-        """Start movement in a new thread."""
-        if not self._running:
-            self._running = True
-            self._thread = threading.Thread(target=self.__run, daemon=True)
-            self._thread.start()
-
+        # Handle wrapping or limits
+        if self.isWrapOn:
+            self.x %= 8
+        else:
+            if self.x < 0:
+                self.x = 0
+            elif self.x > 7:
+                self.x = 7
+        
     def stop(self):
-        """Stop movement and clear LEDs."""
-        self._running = False
-        if self._thread and self._thread.is_alive():
-            self._thread.join(timeout=0.5)
-        self.__shifter.shiftByte(0)
-        # DO NOT call GPIO.cleanup() here
+        self.running = False
+        self.__shifter.shiftByte(0b00000000)
