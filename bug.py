@@ -29,7 +29,7 @@ try:
         else:
             bug.timestep = 0.1
 
-        bug.move_once()
+        bug.move()
 
 except KeyboardInterrupt:
     GPIO.cleanup()
