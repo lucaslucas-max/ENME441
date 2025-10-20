@@ -1,71 +1,61 @@
-import RPi.GPIO as GPIO
+# bug.py
 import time
-from bugclass import Bug  # assuming your Bug class is in bug_class.py
+import RPi.GPIO as GPIO
+from bugclass import Bug
 
-# --- GPIO Pin setup for switches ---
-S1_PIN = 17  # ON/OFF
-S2_PIN = 27  # Toggle wrap
+# GPIO pins for switches
+S1_PIN = 17  # Start/Stop
+S2_PIN = 27  # Toggle wrap mode
 S3_PIN = 22  # Speed boost
 
+# Set up input pins with pull-down resistors
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(S1_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S2_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(S3_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-# --- Instantiate the Bug ---
-bug = Bug()  # uses default timestep=0.1, x=3, isWrapOn=False
+# Create Bug object (default timestep=0.1, x=3, wrap=False)
+bug = Bug()
 
-# --- Internal state trackers ---
-prev_s1 = GPIO.input(S1_PIN)
-prev_s2 = GPIO.input(S2_PIN)
-prev_s3 = GPIO.input(S3_PIN)
-bug_running = False
+# Store default and boosted speeds
 default_timestep = bug.timestep
+boosted_timestep = default_timestep / 3
+
+# Track previous state of S2 for edge detection
+prev_s2 = GPIO.input(S2_PIN)
 
 try:
-    print("System ready. Use switches s1, s2, s3 to control the Bug.")
+    print("Bug control running. Press Ctrl+C to quit.")
+    print("S1: on/off | S2: toggle wrap | S3: speed boost")
+
     while True:
         s1 = GPIO.input(S1_PIN)
         s2 = GPIO.input(S2_PIN)
         s3 = GPIO.input(S3_PIN)
 
-        # --- s1: ON/OFF control ---
-        if s1 and not bug_running:
-            bug_running = True
-            print("🐞 Bug started")
-            # Run in background — use non-blocking loop
-            bug._running = True
-            while bug._running and GPIO.input(S1_PIN):  # keep bug alive while s1 is ON
-                bug._Bug_display()  # call the Bug’s internal update
-                time.sleep(bug.timestep)
-                bug.x += 1 if GPIO.input(S3_PIN) else -1  # small motion example
-                if bug.isWrapOn:
-                    bug.x %= 8
-                else:
-                    bug.x = max(0, min(7, bug.x))
-        elif not s1 and bug_running:
+        # --- S1: Turn bug on/off ---
+        if s1 and not bug._running:
+            bug.start()
+            print("Bug started.")
+        elif not s1 and bug._running:
             bug.stop()
-            bug_running = False
-            print("🐞 Bug stopped")
+            print("Bug stopped.")
 
-        # --- s2: toggle wrapping (on state change) ---
+        # --- S2: Toggle wrap-around on rising edge ---
         if s2 != prev_s2 and s2 == 1:
             bug.isWrapOn = not bug.isWrapOn
-            print(f"🔁 Wrap mode toggled: {bug.isWrapOn}")
+            print(f"Wrap mode is now {'ON' if bug.isWrapOn else 'OFF'}")
+        prev_s2 = s2
 
-        # --- s3: speed control ---
-        if s3 and not prev_s3:
-            bug.timestep = default_timestep / 3
-            print("⚡ Speed boosted (3x)")
-        elif not s3 and prev_s3:
+        # --- S3: Speed boost while held ---
+        if s3:
+            bug.timestep = boosted_timestep
+        else:
             bug.timestep = default_timestep
-            print("🐢 Speed reset")
 
-        # Save previous states
-        prev_s1, prev_s2, prev_s3 = s1, s2, s3
-        time.sleep(0.05)
+        time.sleep(0.05)  # Small polling delay
 
 except KeyboardInterrupt:
-    print("\nExiting program.")
+    print("Exiting program...")
     bug.stop()
     GPIO.cleanup()
