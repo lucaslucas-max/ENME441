@@ -3,6 +3,7 @@ import time
 import random
 import RPi.GPIO as GPIO
 from shifter import Shifter
+import threading
 
 class Bug:
     def __init__(self, timestep=0.1, x=3, isWrapOn=False):
@@ -19,17 +20,17 @@ class Bug:
         DATA, LATCH, CLOCK = 23, 24, 25
         self.__shifter = Shifter(DATA, CLOCK, LATCH)
 
-        # Control flag for running loop
+        # Control flags
         self._running = False
+        self._thread = None
 
     def __update_display(self):
         """Private: update the LEDs to show the current position."""
         pattern = 1 << self.x
         self.__shifter.shiftByte(pattern)
 
-    def start(self):
-        """Start moving the LED in a random walk."""
-        self._running = True
+    def __run(self):
+        """Private thread loop for movement."""
         try:
             while self._running:
                 self.__update_display()
@@ -40,19 +41,27 @@ class Bug:
                 self.x += move
 
                 if self.isWrapOn:
-                    # Wrap around edges
                     self.x %= 8
                 else:
-                    # Keep LED inside range
                     if self.x < 0:
                         self.x = 0
                     elif self.x > 7:
                         self.x = 7
-        except KeyboardInterrupt:
-            self.stop()
+        except Exception as e:
+            print("Error in bug thread:", e)
+        finally:
+            self.__shifter.shiftByte(0b00000000)
+
+    def start(self):
+        """Start movement in a new thread."""
+        if not self._running:
+            self._running = True
+            self._thread = threading.Thread(target=self.__run, daemon=True)
+            self._thread.start()
 
     def stop(self):
         """Stop movement and clear LEDs."""
         self._running = False
+        if self._thread and self._thread.is_alive():
+            self._thread.join(timeout=0.5)
         self.__shifter.shiftByte(0b00000000)
-        GPIO.cleanup()
