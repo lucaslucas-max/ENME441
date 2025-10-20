@@ -32,7 +32,7 @@ class Bug:
         self.__shifter = __shifter
         self.running = False
     
-    def move_once(self):
+    def move(self):
         if not self.running:
             return
         pattern = 1 << self.x
