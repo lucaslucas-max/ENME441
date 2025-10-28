@@ -1,17 +1,20 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
+
+HTML_PAGE = ""\
 <html>
   <body>
     <form action="/cgi-bin/range.py" method = "POST">
       <input type="range" name = "Brightness_Level" min = "0" max = "100"
       value = "50"/><br>
       <input type= "submit" value = "Submit">
-      </form>
-      
+    </form>
+
+    Select LED:
     <form action="/cgi-bin/radio.py" method = "POST">
       <input type="radio" name = "LED" value = "LED 1" checked > LED 1 <br>
-      <input type="radio" name = "LED" value = "LED 2" <br>
-      <input type="radio" name = "LED" value = "LED 3" <br>
+      <input type="radio" name = "LED" value = "LED 2"> <br>
+      <input type="radio" name = "LED" value = "LED 3"> <br>
       <input type="submit" value = "Submit">
     </form>
     
@@ -20,11 +23,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
     </form>
   </body>
 </html>
-
-
-
-
-
+""
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
