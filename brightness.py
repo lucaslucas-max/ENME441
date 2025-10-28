@@ -26,17 +26,17 @@ HTML_PAGE = """\
 """
 
 class MyHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
+  def do_GET(self):
     if self.path == "/":
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(HTML_PAGE.encode())
+      self.send_response(200)
+      self.send_header('Content-type', 'text/html')
+      self.end_headers()
+      self.wfile.write(HTML_PAGE.encode())
     else:
-        self.send_error(404, "File Not Found")
+      self.send_error(404, "File Not Found")
 
 
-    def do_POST(self):
+  def do_POST(self):
         # Handle POST requests (e.g. form submission or client data)
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length).decode()
