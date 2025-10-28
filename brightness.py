@@ -1,5 +1,5 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
-
+import json
 
 HTML_PAGE = """\
 <html>
@@ -54,7 +54,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 # Start the HTTP server
 if __name__ == "__main__":
-    PORT = 8080
+    PORT = 5000
     server = HTTPServer(('', PORT), MyHandler)
     print(f"Server running on http://localhost:{PORT}")
     server.serve_forever()
