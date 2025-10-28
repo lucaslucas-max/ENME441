@@ -59,7 +59,8 @@ class MyHandler(BaseHTTPRequestHandler):
     self.wfile.write(response.encode())
 
 
-if name == "main":
+if __name__ == "__main__":
+
   PORT = 5000
   server = HTTPServer(("127.0.0.1", PORT), MyHandler)
   print(f"Server running on http://localhost:{PORT}")
