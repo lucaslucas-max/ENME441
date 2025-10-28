@@ -1,7 +1,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 
-HTML_PAGE = ""\
+HTML_PAGE = """\
 <html>
   <body>
     <form action="/cgi-bin/range.py" method = "POST">
@@ -23,7 +23,7 @@ HTML_PAGE = ""\
     </form>
   </body>
 </html>
-""
+"""
 
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
