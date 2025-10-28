@@ -29,7 +29,7 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         # Handle GET requests (e.g. browser visiting the page)
         self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_header('Content-type', 'text/html')
         self.end_headers()
 
         # Placeholder function call or message
@@ -46,7 +46,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
         # Send back a simple confirmation
         self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_header('Content-type', 'text/html')
         self.end_headers()
 
         response = "POST request processed"
