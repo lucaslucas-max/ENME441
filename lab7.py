@@ -4,17 +4,17 @@ import socketserver
 led_brightness = [0, 0, 0]
 
 def generate_html():
-"""Generate the HTML page with the form and current LED brightness."""
-html = f"""
-<html>
-<head>
-<title>LED Brightness Control</title>
-</head>
-<body>
-<h2>LED Brightness Control</h2>
-<form method="POST">
-<label>Brightness level:</label><br>
-<input type="range" name="brightness" min="0" max="100" value="50"><br><br>
+        """Generate the HTML page with the form and current LED brightness."""
+         html = f"""
+        <html>
+        <head>
+        <title>LED Brightness Control</title>
+        </head>
+        <body>
+        <h2>LED Brightness Control</h2>
+        <form method="POST">
+        <label>Brightness level:</label><br>
+        <input type="range" name="brightness" min="0" max="100" value="50"><br><br>
 
         <label>Select LED:</label><br>
         <input type="radio" name="led" value="0" checked> LED 1 ({led_brightness[0]}%)<br>
@@ -22,18 +22,18 @@ html = f"""
         <input type="radio" name="led" value="2"> LED 3 ({led_brightness[2]}%)<br><br>
 
         <input type="submit" value="Change Brightness">
-    </form>
+        </form>
 
-    <h3>Current LED Brightness:</h3>
-    <ul>
+        <h3>Current LED Brightness:</h3>
+        <ul>
         <li>LED 1: {led_brightness[0]}%</li>
         <li>LED 2: {led_brightness[1]}%</li>
         <li>LED 3: {led_brightness[2]}%</li>
-    </ul>
-</body>
-</html>
-"""
-return html
+        </ul>
+        </body>
+        </html>
+        """
+        return html
 
 class LEDRequestHandler(http.server.SimpleHTTPRequestHandler):
   def do_GET(self):
