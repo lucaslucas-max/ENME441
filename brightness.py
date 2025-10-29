@@ -2,30 +2,27 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 
 HTML_PAGE = """\
-<html> 
-<body> 
-Brightness level:<br> <form action="/cgi-bin/range.py" method="POST"> 
-<input type="range" name="Brightness_Level" min="0" max="100" 
-value="50" 
-oninput="this.nextElementSibling.value = this.value + '%'"><br> 
-<output>28%</output><br> 
-<input type="submit" value="Submit">
-</form>
+<html>
+  <body>
+    <form action="/cgi-bin/range.py" method = "POST">
+      <input type="range" name = "Brightness_Level" min = "0" max = "100"
+      value = "50"/><br>
+      <input type= "submit" value = "Submit">
+    </form>
 
-<br>Select LED:<br>
-<form action="/cgi-bin/radio.py" method="POST">
-<input type="radio" name="LED" value="LED 1" checked> LED 1 (0%)<br>
-<input type="radio" name="LED" value="LED 2"> LED 2 (28%)<br>
-<input type="radio" name="LED" value="LED 3"> LED 3 (0%)<br>
-<input type="submit" value="Submit">
-</form>
-
-<form action="/" method="POST">
-<button name="Change_Brightness" value="b1">Change Brightness</button>
-</form>
-</body>
+    Select LED:
+    <form action="/cgi-bin/radio.py" method = "POST">
+      <input type="radio" name = "LED" value = "LED 1" checked > LED 1 <br>
+      <input type="radio" name = "LED" value = "LED 2"> <br>
+      <input type="radio" name = "LED" value = "LED 3"> <br>
+      <input type="submit" value = "Submit">
+    </form>
+    
+    <form action="/" method = "POST">
+      <button name= "Change_Brightness" value = b1> Change Brightness </button>
+    </form>
+  </body>
 </html>
-
 """
 
 class MyHandler(BaseHTTPRequestHandler):
