@@ -5,7 +5,7 @@ led_brightness = [0, 0, 0]
 
 def generate_html():
         """Generate the HTML page with the form and current LED brightness."""
-         html = f"""
+        html = f"""
         <html>
         <head>
         <title>LED Brightness Control</title>
