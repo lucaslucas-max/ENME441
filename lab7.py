@@ -1,79 +1,83 @@
-import http.server
-import socketserver
+import RPi.GPIO as GPIO
+import socket
+from urllib.parse import parse_qs
+import os
 
-led_brightness = [0, 0, 0]
+GPIO.setmode(GPIO.BCM)
+LEDpins = [16, 20, 21]
+pwms = []                  # initialize pwm list
+for i in LEDpins:
+  GPIO.setup(i, GPIO.OUT)
+  pwm = GPIO.PWM(i, 1000)
+  pwm.start(0)              # start pwm at 0% duty cycle
+  pwms.append(pwm)          # add pwm to pwm list
 
-def generate_html():
-        """Generate HTML page showing current LED states and brightness form."""
-        html = f"""
-        <html>
-        <head>
-        <title>LED Brightness Control</title>
-        </head>
-        <body>
-        <h2>LED Brightness Control</h2>
-        <form method="POST">
-        <label>Brightness level:</label><br>
-        <input type="range" name="brightness" min="0" max="100" value="50">
-        <br><br>
-        <label>Select LED:</label><br>
-        <input type="radio" name="led" value="0" checked> LED 1 ({led_brightness[0]}%)<br>
-        <input type="radio" name="led" value="1"> LED 2 ({led_brightness[1]}%)<br>
-        <input type="radio" name="led" value="2"> LED 3 ({led_brightness[2]}%)<br><br>
+brightness = [0, 0, 0]      # stores brightness data
 
-        <input type="submit" value="Change Brightness">
-        </form>
+def html_generator():
+  html = f"""<!DOCTYPE html>
+<html>
+<head>
+  <title>LED BRIGHTNESS CONTROLLER</title>
+</head>
+<body>
+  <h3>Brightness Level</h3>
+  <form method="POST">
+    <input type="range" name="level" min="0" max="100" value="0"><br><br>
 
-        <h3>Current LED Brightness:</h3>
-        <ul>
-        <li>LED 1: {led_brightness[0]}%</li>
-        <li>LED 2: {led_brightness[1]}%</li>
-        <li>LED 3: {led_brightness[2]}%</li>
-        </ul>
-        </body>
-        </html>
-        """
-        return html
+    <b>Select LED:</b><br>
+    <input type="radio" name="led" value="0" checked> LED 1 ({brightness[0]}%)<br>
+    <input type="radio" name="led" value="1"> LED 2 ({brightness[1]}%)<br>
+    <input type="radio" name="led" value="2"> LED 3 ({brightness[2]}%)<br><br>
+    <input type="submit" value="Change Brightness">
+  </form>
+</body>
+</html>"""
+  return html
 
-class LEDRequestHandler(http.server.BaseHTTPRequestHandler):
-        def do_GET(self):
-                """Serve the HTML form when accessed via browser."""
-                self.send_response(200)
-                self.send_header("Content-type", "text/html")
-                self.end_headers()
-                self.wfile.write(generate_html().encode("utf-8"))
 
-def do_POST(self):
-    """Handle form submission and update LED brightness."""
-    content_length = int(self.headers["Content-Length"])
-    post_data = self.rfile.read(content_length).decode("utf-8")
-
-    # Manually parse form data (no urllib)
-    brightness_value = 0
-    led_index = 0
-
-    if "brightness=" in post_data:
-        part = post_data.split("brightness=")[1]
-        brightness_str = part.split("&")[0]
-        if brightness_str.isdigit():
-            brightness_value = int(brightness_str)
-
-    if "led=" in post_data:
-        led_str = post_data.split("led=")[1]
-        if led_str.isdigit():
-            led_index = int(led_str)
-
-    # Update stored brightness for the selected LED
-    led_brightness[led_index] = brightness_value
-    print(f"LED {led_index + 1} brightness set to {brightness_value}%")
-
-    # Send updated HTML page back
-    self.send_response(200)
-    self.send_header("Content-type", "text/html")
-    self.end_headers()
-    self.wfile.write(generate_html().encode("utf-8"))
-
+HOST = ''
 PORT = 8080
-with socketserver.TCPServer(("", PORT), LEDRequestHandler) as httpd:
-        print(f"Serving on port {PORT}")
-        httpd.serve_forever()
+ip = os.popen("hostname -I").read().split()[0]
+print(f"Server running at http://{ip}:{PORT}/")
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+  s.bind((HOST, PORT))
+  s.listen(1)
+
+  try:
+    while True:
+      conn, addr = s.accept()
+      with conn:
+        request = conn.recv(1024).decode('utf-8', errors='ignore')
+
+        if not request:
+          continue
+
+        header, _, body = request.partition('\r\n\r\n')
+
+        if header.startswith('POST'):
+          form = parse_qs(body)
+          led_idx = int(form.get('led', [0])[0])
+          level = int(form.get('level', [0])[0])
+
+          brightness[led_idx] = level
+          pwms[led_idx].ChangeDutyCycle(level)
+
+        response_body = html_generator()
+        response = (
+          "HTTP/1.1 200 OK\r\n"
+          "Content-Type: text/html\r\n"
+          f"Content-Length: {len(response_body)}\r\n"
+          "Connection: close\r\n"
+          "\r\n" + 
+          response_body
+        )
+        conn.sendall(response.encode('utf-8'))
+
+  except KeyboardInterrupt:
+    print("\nShutting Down...")
+  finally:
+    for pwm in pwms:
+      pwm.stop()
+    GPIO.cleanup()
