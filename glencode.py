@@ -37,6 +37,7 @@ try:
     while True:
         for step in steps:
             s.shiftByte(step)
+            print("Glen")
             sleep(0.05)  # Adjust for motor speed
 except KeyboardInterrupt:
     GPIO.cleanup()
